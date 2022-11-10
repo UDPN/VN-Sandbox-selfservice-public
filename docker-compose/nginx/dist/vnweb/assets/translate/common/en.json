@@ -1,0 +1,114 @@
+{
+  "hello": "Hello",
+  "loginPage": {
+    "placeholder": {
+      "account": "input your account"
+    },
+    "login": "Login {{platform}} platform",
+    "agreement": "click ivew <a href=\"www.xxxx.com\" class=\"gray-color\">User Agreement</a>",
+    "thirdParty": "{{thirdParty}} login"
+  },
+  "cancel": "Cancel",
+  "browse": "Browse",
+  "close": "Close",
+  "confirm": "Confirm",
+  "agree": "Agree",
+  "disagree": "Disagree",
+  "apply": "Apply",
+  "query": "Query",
+  "reset": "Reset",
+  "submit": "Submit",
+  "save": "Save",
+  "create": "Create",
+  "edit": "Edit",
+  "repulse": "Repulse",
+  "applyForExit": "Apply For Exit",
+  "exit":"Exit",
+  "detail":"Detail",
+  "delete":"Delete",
+  "vote":"Vote",
+  "back": "Back",
+  "ok": "OK",
+  "reason": "Please enter the reason for repulse :",
+  "proposalHistory":"Proposal History",
+  "noData": "No data matching the filter",
+  "numFound": "{{t}} items found, display {{start}} to {{end}}",
+  "status": {
+    "all": "ALL",
+    "init": "Init",
+    "submitted": "Submitted",
+    "active": "Active",
+    "suspend": "Suspend",
+    "retired": "Retired",
+    "failed": "Onboarding Failed",
+    "received": "Received",
+    "repulsed": "Repulsed",
+    "onboarding": "Node Onboarding",
+    "exit": "Node Exit",
+    "applyExit": "Node Apply For Exit",
+    "onboardApplication": "Node Onboard Application",
+    "voting": "Voting",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "invalid": "Invalid",
+    "tnNode": "TN Node Business Registration",
+    "close": "close business",
+    "serviceFee": "Service Fee",
+    "threshold": "Strategy Threshold Change",
+    "unknown": "unknown"
+  },
+  "serviceFeeStatus": {
+    "all": "ALL",
+    "init": "Init",
+    "voting": "Voting",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "invalid": "Invalid"
+  },
+  "strategyMethod": {
+    "all": "ALL",
+    "byVotes": "By Votes",
+    "byPercentage": "By Percentage Of Votes"
+  },
+  "proposalType": {
+    "all": "ALL",
+    "nodeOnboarding": "Node Onboarding",
+    "nodeExit": "Node Exit",
+    "applyForExit": "Node Apply For Exit",
+    "nodeOnboardApplication": "Node Onboard Application"
+  },
+  "proposalStatus": {
+    "all": "ALL",
+    "init": "Init",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "nodeType": {
+    "all": "ALL",
+    "bn": "Business node (BN)",
+    "tn": "Transaction node (TN)",
+    "tar": "TAR node"
+  },
+  "chargingModel": {
+    "all": "ALL",
+    "fixedFee": "Fixed Fee",
+    "ratio": "Transaction Amount Ratio"
+  },
+  "votingInformation": {
+    "VotingResult": "Voting Result",
+    "yesVote": "Yes Vote",
+    "negtiveVote": "Negtive Vote",
+    "notVoted": "Not Voted"
+  },
+  "formly":{
+    "required":"{{label}} is required"
+  },
+  "onlineHelp": {
+    "node": "Generate a did document for the node through the offline SDK, and then upload it. Please refer to the online help manual for specific operations.",
+    "servcieFee": "For the service fee in the fixed mode, you only need to set a fixed value. For the service fee in the transaction amount percentage mode, in addition to setting the normal service fee ratio, you can also enter the maximum value and minimum value.",
+    "servcieFeeProrosal": "Display the service fee modified in the current proposal and all the service fee information in the current system."
+  },
+  "udpn-list": {},
+  "udpn-filter": {}
+}

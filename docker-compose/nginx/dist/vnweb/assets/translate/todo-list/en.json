@@ -1,0 +1,12 @@
+{
+  "todo-list":{
+    "list":{
+      "title": "To Do List",
+      "proposalCode": "Proposal Code",
+      "proposalType":"Proposal Type",
+      "submissionTime":"Submission Time",
+      "status":"Status",
+      "action":"Action"
+    }
+  }
+}

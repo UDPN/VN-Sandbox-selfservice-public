@@ -1,0 +1,34 @@
+{
+  "service-fee":{
+    "public":{
+      "serviceFeeTitle":"Service Fee Title",
+      "serviceFeeCode":"Service Fee Code",
+      "originalModel":"Original Charging Model",
+      "chargingModel":"Charging Model",
+      "creation":"Creation Time",
+      "fromVN":"From Initial VN",
+      "status":"Status",
+      "originalFee": "Original Service Fee",
+      "serviceFee": "Service Fee",
+      "platformType": "Platform Type",
+      "currencyType": "Currency Type",
+      "currencyPrecision": "Currency Precision",
+      "least": "At Least :",
+      "most": ", At Most :",
+      "normal": "Normal :"
+    },
+    "list":{
+      "fiter":"Service Fee Query",
+      "title":"Service Fee List",
+      "action":"Action",
+      "create":"Create a New Service Fee",
+      "edit":"edit {{value}} Service Fee"
+    },
+    "add":{
+      "vServiceFeeTitle":"{{value}} is not a letter from 1 to 50"
+    },
+    "required": {
+      "serviceFeeTitle": "Service Fee Title is required"
+    }
+  }
+}

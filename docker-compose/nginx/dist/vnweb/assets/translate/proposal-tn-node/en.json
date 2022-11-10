@@ -1,0 +1,32 @@
+{
+  "tn-node":{
+    "public":{
+      "chainFeeModel":"Charging Model",
+      "serviceFee":"Service Fee",
+      "proposalCode":"Proposal Code",
+      "nodeName":"Node Name",
+      "nodeCode":"Node Code",
+      "proposalType":"Proposal Type",
+      "submission":"Submission Time",
+      "fromVN":"From Initial VN",
+      "status":"Status",
+      "platformType":"Platform Type",
+      "currencyType":"Currency Type",
+      "myVote":"My Vote",
+      "account": "Account",
+      "isKYC": "IsKYC",
+      "votingComments": "My Voting Comments",
+      "votingResult": "Voting Result",
+      "comments": "Comments",
+      "information": "Voting Information",
+      "precision": "Currency Precision",
+      "url": "Url"
+    },
+    "list":{
+      "fiter":"TN Node Business Proposal Query",
+      "title":"TN Node Business Proposal List",
+      "action":"Action"
+    }
+  }
+}
+

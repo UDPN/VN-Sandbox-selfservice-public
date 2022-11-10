@@ -1,0 +1,31 @@
+{
+  "threshold":{
+    "public":{
+      "proposalCode":"Proposal Code",
+      "votingStrategyType":"Voting Strategy Type",
+      "votingStrategyMethod":"Voting Strategy Method",
+      "newStrategyMethod":"New Voting Strategy Method",
+      "newPassValue":"New Pass Value",
+      "fromVN":"From Initial VN",
+      "status":"Status",
+      "myVote":"My Vote",
+      "currentStrategyMethod": "Current Voting Strategy Method",
+      "currentPassValue": "Current Pass Value",
+      "submission": "Submission Time",
+      "description": "Description",
+      "votingComments": "My Voting Comments",
+      "votingResult": "Voting Result",
+      "comments": "Comments"
+    },
+    "list":{
+      "fiter":"Alliance Member Proposal Query",
+      "title":"Alliance Member List",
+      "action":"Action"
+    },
+    "add":{
+      "newValueByPercentage":"New pass value should be a numeric percentage between 1 and 100 !",
+      "newValueByVotes":"New pass value should be an integer greater than 0 and less than {{value}}",
+      "vnCount": " There are {{value}} nodes currently"
+    }
+  }
+}

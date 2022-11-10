@@ -1,0 +1,12 @@
+{
+  "todo-list":{
+    "list":{
+      "title": "代办列表",
+      "proposalCode": "Proposal Code",
+      "proposalType":"Proposal Type",
+      "submissionTime":"Submission Time",
+      "status":"状态",
+      "action":"操作"
+    }
+  }
+}
