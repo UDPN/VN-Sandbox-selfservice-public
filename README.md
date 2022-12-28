@@ -36,15 +36,21 @@ git lfs clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
 - Enter the VN docker-compose directory
   
   `cd VN-Sandbox-selfservice-public/docker-compose`
-- start VN
+
+- Setup a Besu node and connect to UDPN permissioned network
+
+  This is a seperation step, and this is the first thing you need to accomplish.
+
+- Register a Validator Node and config
+
+  Before start a VN, you need to ask other VN to onboard your VN and give you some info, e.g. vn_code .etc.
+  
+- start VN (you need to config the vn before start VN, e.g. set vn_code .etc)
   
   `sudo docker-compose up -d`  
 - stop VN
   
   `sudo docker-compose down`  
-- Register to Validator Node
-
-  By now, your VN instance has been started successfully.  Now, you need to follow the user guide and start to register to VN via url-to-manual
 
 ### Web addresses used in VN service
 
