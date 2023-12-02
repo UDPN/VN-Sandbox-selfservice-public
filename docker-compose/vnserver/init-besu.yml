@@ -1,0 +1,12 @@
+besu:
+  inits:
+    - nodeName: besu-b
+      schema: http
+      host: 127.0.0.1
+      port: 8545
+      websocketPort: 2829
+    - nodeName: besu-a
+      schema: http
+      host: 127.0.0.1
+      port: 8545
+      websocketPort: 2829
