@@ -97,6 +97,7 @@ services:
       - RABBITMQ_LOGS=/var/lib/rabbitmq/rabbitmq.log
     volumes:
       - ${VN_DATA_VOLUMES}/rabbitmq/data:/var/lib/rabbitmq
+      - ./rabbitmq/init.sh:/script/init.sh
       - /etc/localtime:/etc/localtime
     restart: always
     networks:

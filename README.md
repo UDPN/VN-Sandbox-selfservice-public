@@ -38,12 +38,15 @@ git clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
 git checkout "NEW-TAG"
 ```
 
-### Steps 2: start service
+### Steps 2: start  base service
 
 ```
-# You can modify the data storage directory yourself .env BN_DATA_VOLUMES
+# You can modify the data storage directory yourself .env VN_DATA_VOLUMES
 cd VN-Sandbox-selfservice-public/docker-compose
-docker-compose up -d
+docker-compose -f docker-compose-base.yaml up -d
+
+docker exec rabbitmq bash /script/init.sh
+
 ```
 
 ### Steps 3: load nacos config file
@@ -74,7 +77,12 @@ Configurations-->import-->Same preparation(Overwrite)-->Upload File-->choice x.z
 abc
 ```
 
-  
+ ### Step 6: start vn service
+ 
+ ```
+cd VN-Sandbox-selfservice-public/docker-compose
+docker-compose -f docker-compose-base.yaml up -d
+ ```
 
 
 ### Web addresses used in VN service
