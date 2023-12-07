@@ -5,13 +5,13 @@
 ###  hardware spec
 ```
 Minimum configuration
-cpu : 2 core
-mem : 4 G
+cpu : 4 core
+mem : 16 G
 disk: 40 G
 
 Recommended configuration
-cpu : 4 core
-mem : 8 G
+cpu : 8 core
+mem : 32 G
 disk: 40 G
 ```
 ### OS and tools
