@@ -56,9 +56,9 @@ git lfs clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
 
 Note: The system needs to use port 80,8080-8085,8761,3306,6379. If there is any conflict, please modify the .env file.
 
-- EUREKA
-    http://localhost:8761/
 - VN-web
+    http://localhost/
+- VN-solutioncenter-web
     http://localhost/
 
 ### upgrade (optional)

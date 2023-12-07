@@ -17,7 +17,7 @@ services:
     ports:
       - ${MYSQL_MASTER_PORT}:3306
     networks:
-      - udpn-bn
+      - udpn-vn
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 1s
@@ -42,7 +42,7 @@ services:
     ports:
       - ${REDIS_PORT}:6379
     networks:
-      - udpn-bn
+      - udpn-vn
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 1s
@@ -78,7 +78,7 @@ services:
       - ${NACOS_GRPC_PORT}:7848
       - ${NACOS_PUB_PORT}:9849
     networks:
-      - udpn-bn
+      - udpn-vn
     depends_on:
       mysql:
         condition: service_healthy
@@ -100,7 +100,7 @@ services:
       - /etc/localtime:/etc/localtime
     restart: always
     networks:
-      - udpn-bn
+      - udpn-vn
 
   ipfs:
     image: ipfs/go-ipfs:latest
@@ -115,7 +115,8 @@ services:
       - 0.0.0.0:10052:8080
     entrypoint: /sbin/tini -- /usr/local/bin/start_ipfs daemon --migrate=true --enable-gc
     networks:
-      - udpn-vn
+      udpn-vn:
+        ipv4_address: 172.16.138.101
 
   vngateway:
     image: udpnnetwork/chaingateway:v1.7.0
@@ -412,7 +413,7 @@ services:
     container_name: vn-web
     restart: always
     volumes:
-      - ${VN_DATA_VOLUMES}/bnweb/logs:/var/log/nginx
+      - ${VN_DATA_VOLUMES}/vnweb/logs:/var/log/nginx
       - ./vnweb:/etc/nginx/conf.d/
     ports:
       - 8080:80
@@ -424,7 +425,7 @@ services:
     container_name: vnsolutioncenter-web
     restart: always
     volumes:
-      - ${VN_DATA_VOLUMES}/bnweb/logs:/var/log/nginx
+      - ${VN_DATA_VOLUMES}/vnsolutioncenter-web/logs:/var/log/nginx
       - ./vnsolutioncenter-web:/etc/nginx/conf.d/
     ports:
       - 80:80
@@ -436,4 +437,7 @@ networks:
   udpn-vn:
     driver: bridge
     name: udpn-vn
+    ipam:
+   	  config:
+​       - subnet: 172.16.138.0/24
 
