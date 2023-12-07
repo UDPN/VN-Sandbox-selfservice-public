@@ -1,149 +1,6 @@
 version: '3.6'
 services:
 
-  mysql:
-    image: mysql:5.7.33
-    container_name: mysql
-    restart: always
-    privileged: true
-    environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PWD}
-    volumes:
-      - ${VN_DATA_VOLUMES}/mysql/data:/var/lib/mysql
-      - ./mysql/my.cnf:/etc/mysql/my.cnf
-      - ./mysql/init:/docker-entrypoint-initdb.d
-      - /etc/localtime:/etc/localtime
-    ports:
-      - ${MYSQL_MASTER_PORT}:3306
-    networks:
-      - udpn-vn
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 1s
-      timeout: 3s
-      retries: 30
-
-  redis:
-    image: redis:6.2.5
-    container_name: redis
-    restart: always
-    privileged: true
-    environment:
-      TZ: Asia/Shanghai
-      LANG: en_US.UTF-8
-    command:
-      --requirepass "${REDIS_PASSWORD}"
-    volumes:
-      - ${VN_DATA_VOLUMES}/redis/data:/data:rw
-      - ./redis/redis.conf:/redis.conf:rw
-      - /etc/localtime:/etc/localtime
-    privileged: true
-    ports:
-      - ${REDIS_PORT}:6379
-    networks:
-      - udpn-vn
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 1s
-      timeout: 3s
-      retries: 30
-  
-  nacos:
-    image: nacos/nacos-server:v2.2.3
-    container_name: nacos
-    restart: always
-    privileged: true
-    environment:
-      - TZ=Asia/Shanghai
-      - LANG=en_US.UTF-8
-      - MYSQL_SERVICE_HOST=mysql
-      - MYSQL_SERVICE_DB_NAME=nacos_config
-      - MYSQL_SERVICE_PORT=3306
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=123456
-      - PREFER_HOST_MODE=hostname
-      - MODE=standalone
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - NACOS_AUTH_ENABLE=true
-      - NACOS_AUTH_SYSTEM_TYPE=nacos
-      - NACOS_AUTH_IDENTITY_KEY=MREsiDDoiUVS6RkTFFLZ
-      - NACOS_AUTH_IDENTITY_VALUE=XPcj38vDfjLLSH2g4DaVUokFMeP86WdEt83FYyC9
-      - NACOS_AUTH_TOKEN=7KvQB2FgGU2PYpSDCE3sMj5THSfJLjFA32jdHb8NS74Nou2pGmt9wU4TNbggDiiEcFZv7d     
-    volumes:
-       - .${VN_DATA_VOLUMES}/nacos/logs/:/home/nacos/logs
-    ports:
-      - ${NACOS_WEB_PORT}:8848
-      - ${NACOS_MANAGE_PORT}:9848
-      - ${NACOS_GRPC_PORT}:7848
-      - ${NACOS_PUB_PORT}:9849
-    networks:
-      - udpn-vn
-    depends_on:
-      mysql:
-        condition: service_healthy
-
-  rabbitmq:
-    image: rabbitmq:3.8.5-management
-    container_name: rabbitmq
-    privileged: true
-    ports:
-      - ${RABBITMQ_PORT}:5672
-      - ${RABBITMQ_MANAGE_PORT}:15672
-    environment:
-     - RABBITMQ_DEFAULT_VHOST=/
-     - RABBITMQ_DEFAULT_USER=admin
-     - RABBITMQ_DEFAULT_PASS=123456
-     - RABBITMQ_LOGS=/var/lib/rabbitmq/rabbitmq.log
-    volumes:
-      - ${VN_DATA_VOLUMES}/rabbitmq/data:/var/lib/rabbitmq
-      - /etc/localtime:/etc/localtime
-    restart: always
-    networks:
-      - udpn-vn
-
-  ipfs:
-    image: ipfs/go-ipfs:latest
-    container_name: ipfs
-    restart: always
-    volumes:
-      - ${VN_DATA_VOLUMES}/ipfs/data/staging:/export
-      - ${VN_DATA_VOLUMES}/ipfs/data:/data/ipfs
-    ports:
-      - 4001:4001
-      - 0.0.0.0:10053:5001
-      - 0.0.0.0:10052:8080
-    entrypoint: /sbin/tini -- /usr/local/bin/start_ipfs daemon --migrate=true --enable-gc
-    networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.101
-
-  vngateway:
-    image: udpnnetwork/chaingateway:v1.7.0
-    container_name: vngateway
-    restart: always
-    environment:
-      - TZ=Asia/Shanghai
-      - server.port=8080
-      - spring.cloud.nacos.discovery.server-addr=nacos:8848
-      - spring.cloud.nacos.discovery.username=nacos
-      - spring.cloud.nacos.discovery.password=nacos
-      - spring.cloud.nacos.discovery.namespace=vn
-      - NACOS_ADDR=nacos:8848
-      - NACOS_USERNAM=nacos
-      - NACOS_PSW=nacos
-      - NACOS_NAMESPACE=vn
-    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
-    volumes:
-      - ${VN_DATA_VOLUMES}/log:/data:rw
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_GATEWAY_PORT}:8080
-    depends_on:
-      - nacos
-    networks:
-      - udpn-vn
-
   vninit:
     image: udpnnetwork/vninit:v1.7.0
     container_name: vninit
@@ -166,8 +23,30 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - ${VN_INIT_PORT}:8080
-    depends_on:
-      - nacos
+    networks:
+      - udpn-vn
+
+  vngateway:
+    image: udpnnetwork/chaingateway:v1.7.0
+    container_name: vngateway
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - ${VN_GATEWAY_PORT}:8080
     networks:
       - udpn-vn
 
@@ -271,7 +150,7 @@ services:
     ports:
       - ${VN_EVENT_PORT}:8080
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
 
@@ -297,11 +176,10 @@ services:
     ports:
       - ${VN_MEMBER_PORT}:8080
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
   
-
   vnpermission:
     image: udpnnetwork/vnpermission:v1.7.0
     container_name: vnpermission
@@ -324,7 +202,7 @@ services:
     ports:
       - ${VN_PERMISSION_PORT}:8080
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
   
@@ -350,7 +228,7 @@ services:
     ports:
       - ${VN_LOGIN_PORT}:8080
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
   
@@ -377,7 +255,7 @@ services:
     ports:
       - ${VN_TRANSACTION_PORT}:8080
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
   
@@ -404,7 +282,7 @@ services:
     ports:
       - ${VN_SOLUTIONCENTER_PORT}:8080
     depends_on:
-      - nacos
+      - vngateway
     networks:
       - udpn-vn
   
@@ -429,15 +307,8 @@ services:
       - ./vnsolutioncenter-web:/etc/nginx/conf.d/
     ports:
       - 80:80
+    depends_on:
+      - vngateway
     networks:
       - udpn-vn
-
-
-networks:
-  udpn-vn:
-    driver: bridge
-    name: udpn-vn
-    ipam:
-   	  config:
-​       - subnet: 172.16.138.0/24
 
