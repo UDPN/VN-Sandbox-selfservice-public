@@ -57,7 +57,7 @@ git lfs clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
 Note: The system needs to use port 80,8080-8085,8761,3306,6379. If there is any conflict, please modify the .env file.
 
 - VN-web
-    http://localhost/
+    http://localhost:8080/
 - VN-solutioncenter-web
     http://localhost/
 
