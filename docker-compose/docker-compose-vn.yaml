@@ -21,8 +21,6 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - ./vnserver/init/init_besu.yml:/data/init/init_besu.yml:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_INIT_PORT}:8080
     networks:
       - udpn-vn
 
@@ -69,8 +67,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_BASE_PORT}:8080
     depends_on:
       - nacos
     networks:
@@ -95,8 +91,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_CONTROL_PORT}:8080
     depends_on:
       - nacos
     networks:
@@ -121,8 +115,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_DID_PORT}:8080
     depends_on:
       - nacos
     networks:
@@ -147,8 +139,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_EVENT_PORT}:8080
     depends_on:
       - vninit
     networks:
@@ -173,8 +163,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_MEMBER_PORT}:8080
     depends_on:
       - vninit
     networks:
@@ -199,8 +187,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_PERMISSION_PORT}:8080
     depends_on:
       - vninit
     networks:
@@ -225,8 +211,6 @@ services:
     volumes:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_LOGIN_PORT}:8080
     depends_on:
       - vninit
     networks:
@@ -252,8 +236,6 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - ./vnserver/solc:/solc:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_TRANSACTION_PORT}:8080
     depends_on:
       - vninit
     networks:
@@ -279,8 +261,6 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - ./vnserver/solc:/solc:rw
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - ${VN_SOLUTIONCENTER_PORT}:8080
     depends_on:
       - vngateway
     networks:
