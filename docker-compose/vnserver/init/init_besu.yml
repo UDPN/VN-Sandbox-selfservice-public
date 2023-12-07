@@ -1,0 +1,12 @@
+besu:
+  inits:
+    #- nodeName: besu-a  #0707取消配置
+    #  schema: http
+    #  host: <besu_ip>
+    #  port: <besu_port>
+    #  websocketPort: <besu_websocket>
+    - nodeName: besu-b
+      schema: http
+      host: 10.198.3.115
+      port: 8545
+      websocketPort: 2829

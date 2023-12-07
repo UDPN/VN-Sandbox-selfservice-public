@@ -81,9 +81,11 @@ abc
 
 Note: The system needs to use port 80,8080-8085,8761,3306,6379. If there is any conflict, please modify the .env file.
 
-- Nacos
-    http://localhost:8848/nacos
+- EUREKA
+    http://localhost:8761/
 - VN-web
+    http://localhost:8080/
+- VN-solutioncenter-web
     http://localhost/
 
 ### upgrade (optional)

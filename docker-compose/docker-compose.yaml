@@ -1,612 +1,443 @@
 version: '3.6'
 services:
 
-  rabbitmq:
-    image: rabbitmq:3.8.3-management
-    container_name: rabbitmq
-    restart: always
-    # hostname: myRabbitmq
-    ports:
-      - $MQ_PORT:$MQ_PORT
-      - $MQ_PORT_MANAGEMENT:$MQ_PORT_MANAGEMENT
-      - 4369:4369
-      - 25672:25672
-    volumes:
-      - $MQ_DATA/data:/var/lib/rabbitmq
-      - $MQ_DATA/log:/var/log/rabbitmq/log
-      - $MQ_DATA/tools:/root/tools
-      - /etc/localtime:/etc/localtime
-    environment:
-      - RABBITMQ_DEFAULT_VHOST=$MQ_VHOST
-      - RABBITMQ_DEFAULT_USER=$MQ_USER
-      - RABBITMQ_DEFAULT_PASS=$MQ_PWD
-    networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.100
-
   mysql:
+    image: mysql:5.7.33
     container_name: mysql
-    image: mysql:5.7.31
     restart: always
-    ports:
-      - ${MYSQL_MASTER_PORT}:${MYSQL_MASTER_PORT}
     privileged: true
-    volumes:
-      - $MYSQL_DATA/data:/var/lib/mysql
-      - $MYSQL_DATA/my.cnf:/etc/mysql/my.cnf
-      - /etc/localtime:/etc/localtime
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PWD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_PWD}
+    volumes:
+      - ${VN_DATA_VOLUMES}/mysql/data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+      - ./mysql/init:/docker-entrypoint-initdb.d
+      - /etc/localtime:/etc/localtime
+    ports:
+      - ${MYSQL_MASTER_PORT}:3306
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.101
+      - udpn-vn
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
   redis:
     image: redis:6.2.5
     container_name: redis
     restart: always
-    ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
+    privileged: true
     environment:
       TZ: Asia/Shanghai
       LANG: en_US.UTF-8
-    volumes:
-      - $REDIS_DATA/data:/data:rw
-      - $REDIS_DATA/redis.conf:/redis.conf:rw
-      - /etc/localtime:/etc/localtime
     command:
       --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - ${VN_DATA_VOLUMES}/redis/data:/data:rw
+      - ./redis/redis.conf:/redis.conf:rw
+      - /etc/localtime:/etc/localtime
     privileged: true
-    networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.102
-
-
-
-  vneureka:
-    image: openjdk:8u102-jre
-    container_name: ${EUREKA_CONTAINER_NAME}
-    restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - /etc/localtime:/etc/localtime:ro
-    environment:
-        - TZ=Asia/Shanghai
-        - server.port=${EUREKA_PORT}
-        - logging.logpath=/data/logs
-        - logging.level.root=info
-        - spring.security.user.name=${EUREKA_USER}
-        - spring.security.user.password=${EUREKA_PWD}
-        - eureka.client.service-url.defaultZone=http://${EUREKA_CONTAINER_NAME}:${EUREKA_PORT}/eureka
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/redeureka-${JAR_VERSION}.jar"
     ports:
-        - ${EUREKA_PORT}:${EUREKA_PORT}
+      - ${REDIS_PORT}:6379
+    networks:
+      - udpn-vn
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: nacos
+    restart: always
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=en_US.UTF-8
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos_config
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=123456
+      - PREFER_HOST_MODE=hostname
+      - MODE=standalone
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - NACOS_AUTH_ENABLE=true
+      - NACOS_AUTH_SYSTEM_TYPE=nacos
+      - NACOS_AUTH_IDENTITY_KEY=MREsiDDoiUVS6RkTFFLZ
+      - NACOS_AUTH_IDENTITY_VALUE=XPcj38vDfjLLSH2g4DaVUokFMeP86WdEt83FYyC9
+      - NACOS_AUTH_TOKEN=7KvQB2FgGU2PYpSDCE3sMj5THSfJLjFA32jdHb8NS74Nou2pGmt9wU4TNbggDiiEcFZv7d     
+    volumes:
+       - .${VN_DATA_VOLUMES}/nacos/logs/:/home/nacos/logs
+    ports:
+      - ${NACOS_WEB_PORT}:8848
+      - ${NACOS_MANAGE_PORT}:9848
+      - ${NACOS_GRPC_PORT}:7848
+      - ${NACOS_PUB_PORT}:9849
+    networks:
+      - udpn-vn
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3.8.5-management
+    container_name: rabbitmq
+    privileged: true
+    ports:
+      - ${RABBITMQ_PORT}:5672
+      - ${RABBITMQ_MANAGE_PORT}:15672
+    environment:
+     - RABBITMQ_DEFAULT_VHOST=/
+     - RABBITMQ_DEFAULT_USER=admin
+     - RABBITMQ_DEFAULT_PASS=123456
+     - RABBITMQ_LOGS=/var/lib/rabbitmq/rabbitmq.log
+    volumes:
+      - ${VN_DATA_VOLUMES}/rabbitmq/data:/var/lib/rabbitmq
+      - /etc/localtime:/etc/localtime
+    restart: always
+    networks:
+      - udpn-vn
+
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    container_name: ipfs
+    restart: always
+    volumes:
+      - ${VN_DATA_VOLUMES}/ipfs/data/staging:/export
+      - ${VN_DATA_VOLUMES}/ipfs/data:/data/ipfs
+    ports:
+      - 4001:4001
+      - 0.0.0.0:10053:5001
+      - 0.0.0.0:10052:8080
+    entrypoint: /sbin/tini -- /usr/local/bin/start_ipfs daemon --migrate=true --enable-gc
     networks:
       udpn-vn:
-        ipv4_address: 172.16.138.103
+        ipv4_address: 172.16.138.101
 
   vngateway:
-    image: openjdk:8u102-jre
-    container_name: ${VN_GATEWAY_CONTAINER_NAME}
+    image: udpnnetwork/chaingateway:v1.7.0
+    container_name: vngateway
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_GATEWAY_PORT}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:${EUREKA_PORT}/eureka
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-gateway-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_GATEWAY_PORT}:${VN_GATEWAY_PORT}
+      - ${VN_GATEWAY_PORT}:8080
     depends_on:
-      - vneureka
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.104
+      - udpn-vn
 
   vninit:
-    image: openjdk:8u102-jre
-    container_name: ${VN_INIT_CONTAINER_NAME}
+    image: udpnnetwork/vninit:v1.7.0
+    container_name: vninit
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/timezone:/etc/timezone:ro
-        - /etc/localtime:/etc/localtime:ro
     environment:
-       - TZ=Asia/Shanghai
-       - server.port=${VN_INIT_PORT}
-       - logging.logpath=${LOG_SAVE_DIR}
-       - logging.level.root=info   
-       - besu.init.file.path=${BESU_INIT_PROPERTIES}
-       - task.strategy.threshold.type=${TASK_STRATEGY_THRESHOLD_TYPE}
-       - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka
-
-       - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-       - mysql.master.username=${MYSQL_USER}
-       - mysql.master.password=${MYSQL_PWD}
-       - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-       - mysql.slave.username=${MYSQL_USER}
-       - mysql.slave.password=${MYSQL_PWD}
-
-       - besu.UDPN_VOTING_STRATEGY_LOGIC=${BESU_UDPN_VOTING_STRATEGY_LOGIC} 
-       - besu.UDPN_VOTING_LOGIC=${BESU_UDPN_VOTING_LOGIC} 
-       - besu.node.url=${BESU_NODE_URL} 
-       - besu.besu.ws.url=${BESU_WS_URL} 
-       - besu.address=${BESU_ADDRESS_M}
-       - besu.privatekey=${BESU_PRIVATEKEY_M}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-init-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - ./vnserver/init/init_besu.yml:/data/init/init_besu.yml:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_INIT_PORT}:${VN_INIT_PORT}
+      - ${VN_INIT_PORT}:8080
     depends_on:
-      - vngateway
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.105
+      - udpn-vn
 
   vnbase:
-    image: openjdk:8u102-jre
-    container_name: ${VN_BASE_CONTAINER_NAME}
+    image: udpnnetwork/vnbase:v1.7.0
+    container_name: vnbase
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
-        - /etc/timezone:/etc/timezone:ro
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_BASE_PORT}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info   
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka 
-
-        - spring.redis.host=${REDIS_HOST}
-        - spring.redis.port=${REDIS_PORT}
-        - spring.redis.password=${REDIS_PASSWORD}
-        - spring.redis.database=${REDIS_DATABASE}
-        
-        - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.master.username=${MYSQL_USER}
-        - mysql.master.password=${MYSQL_PWD}
-        - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.slave.username=${MYSQL_USER}
-        - mysql.slave.password=${MYSQL_PWD}
-
-        - email.host=${VN_BASE_EMAIL_HOST}
-        - email.port=${VN_BASE_EMAIL_PORT}
-        - email.user=${VN_BASE_EMAIL_USER}
-        - email.password=${VN_BASE_EMAIL_PASSWORD}
-        - email.from=${VN_BASE_EMAIL_FROM}
-
-        - did.proxy.mode=${DID_PROXY_MODE}
-        - did.proxy.url=${DID_PROXY_URL}
-        - did.besu.node.url=${DID_BESU_NODE_URL}
-        - did.besu.node.private.key=${DID_BESU_NODE_PRIVATEKEY}
-        - did.besu.did.cont.address=${DID_BESU_DID_CONTADDRESS}
-        - did.besu.cpt.cont.address=${DID_BESU_CPT_CONTADDRESS}
-        - did.besu.auth.issuer.address=${DID_BESU_AUTHISSUERADDRESS}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-base-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_BASE_PORT}:${VN_BASE_PORT}
+      - ${VN_BASE_PORT}:8080
     depends_on:
-      - rabbitmq
-      - mysql
-      - redis
-      - vneureka
-      - vngateway
-      - vninit
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.106
-
+      - udpn-vn
 
   vncontrol:
-    image: openjdk:8u102-jre
-    container_name: ${VN_CONTROL_CONTAINER_NAME}
+    image: udpnnetwork/vncontrol:v1.7.0
+    container_name: vncontrol
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
-        - /etc/timezone:/etc/timezone:ro
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_CONTROL_PORT}
-        - spring.vn-code=${VN_CODE}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka 
-
-        - spring.redis.host=${REDIS_HOST}
-        - spring.redis.port=${REDIS_PORT}
-        - spring.redis.password=${REDIS_PASSWORD}
-        - spring.redis.database=${REDIS_DATABASE}
-
-        - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.master.username=${MYSQL_USER}
-        - mysql.master.password=${MYSQL_PWD}
-        - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.slave.username=${MYSQL_USER}
-        - mysql.slave.password=${MYSQL_PWD}
-
-        - besu.node.url=http://${VN_GATEWAY_CONTAINER_NAME}:8081/besu
-        - besu.contract.attempts=${BESU_CONTRACT_ATTEMPS} 
-        - besu.contract.sleepDuration=${BESU_CONTRACT_SLEEP_DURATION} 
-        - besu.UDPN_BASIC_MEMBER_NODE_LOGIC=${BESU_UDPN_BASIC_MEMBER_NODE_LOGIC} 
-        - besu.UDPN_BIZ_MEMBER_NODE_LOGIC=${BESU_UDPN_BIZ_MEMBER_NODE_LOGIC} 
-        - besu.UDPN_PAYMENT_TRANS_LOGIC=${BESU_UDPN_PAYMENT_TRANS_LOGIC} 
-        - besu.EXCHANGE_RATE_STRATEGY=${BESU_EXCHANGE_RATE_STRATEGY} 
-        - besu.UDPN_SERVICE_FEE_LOGIC=${BESU_UDPN_SERVICE_FEE_LOGIC} 
-        - besu.UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC=${BESU_UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC}
-        - besu.UDPN_VOTING_STRATEGY_LOGIC=${BESU_UDPN_VOTING_STRATEGY_LOGIC} 
-        - besu.UDPN_VOTING_LOGIC=${BESU_UDPN_VOTING_LOGIC} 
-        - besu.UDPN_BIZ_ACCOUNT_BINDING_LOGIC=${BESU_UDPN_BIZ_ACCOUNT_BINDING_LOGIC}
-        - besu.address=${BESU_ADDRESS_C}
-        - besu.privatekey=${BESU_PRIVATEKEY_C}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-control-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_CONTROL_PORT}:${VN_CONTROL_PORT}
+      - ${VN_CONTROL_PORT}:8080
     depends_on:
-      - vnbase
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.107
+      - udpn-vn
 
   vndid:
-    image: openjdk:8u102-jre
-    container_name: ${VN_VNDID_CONTAINER_NAME}
+    image: udpnnetwork/vndid:v1.7.0
+    container_name: vndid
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
-        - /etc/timezone:/etc/timezone:ro
-    env_file:
-        - ./.env       
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_VNDIDL_PORT}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info   
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka 
-
-        - spring.redis.host=${REDIS_HOST}
-        - spring.redis.port=${REDIS_PORT}
-        - spring.redis.password=${REDIS_PASSWORD}
-        - spring.redis.database=${REDIS_DATABASE}
-
-        - did.properties.file=${DID_PROPERTIES_FILE}
-        - did.proxy.mode=${DID_PROXY_MODE}
-        - did.proxy.url=${DID_PROXY_URL}
-        - did.besu.node.url=${DID_BESU_NODE_URL}
-        - did.besu.node.private.key=${DID_BESU_NODE_PRIVATEKEY}
-        - did.besu.did.cont.address=${DID_BESU_DID_CONTADDRESS}
-        - did.besu.cpt.cont.address=${DID_BESU_CPT_CONTADDRESS}
-        - did.besu.auth.issuer.address=${DID_BESU_AUTHISSUERADDRESS}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-did-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_VNDIDL_PORT}:${VN_VNDIDL_PORT}
+      - ${VN_DID_PORT}:8080
     depends_on:
-      - vnbase
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.108
-
+      - udpn-vn
+  
   vnevent:
-    image: openjdk:8u102-jre
-    container_name: ${VN_EVENT_CONTAINER_NAME}
+    image: udpnnetwork/vnevent:v1.7.0
+    container_name: vnevent
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - /etc/localtime:/etc/localtime:ro
     environment:
-       - TZ=Asia/Shanghai
-       - server.port=${VN_EVENT_PORT}
-       - spring.vn-code=${VN_CODE}
-       - logging.logpath=${LOG_SAVE_DIR}
-       - logging.level.root=info   
-       - event.server.start=${VN_EVENT_LISTENER_START}
-       - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka 
-
-       - spring.redis.host=${REDIS_HOST}
-       - spring.redis.port=${REDIS_PORT}
-       - spring.redis.password=${REDIS_PASSWORD}
-       - spring.redis.database=${REDIS_DATABASE}
-
-       - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-       - mysql.master.username=${MYSQL_USER}
-       - mysql.master.password=${MYSQL_PWD}
-       - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-       - mysql.slave.username=${MYSQL_USER}
-       - mysql.slave.password=${MYSQL_PWD}
-
-       - spring.mq-public-host=${MQ_PUBLIC_HOST}
-       - spring.mq-protocol=${MQ_PROTOCOL}
-       - rabbitmq.host=${MQ_HOST}
-       - rabbitmq.port=${MQ_PORT}
-       - rabbitmq.mgrport=${MQ_PORT_MANAGEMENT}
-       - rabbitmq.username=${MQ_USER}
-       - rabbitmq.password=${MQ_PWD}
-       - rabbitmq.vhost=${MQ_VHOST}
-
-       - besu.nodePrivateKey=${BESU_NODE_PRIVATEKEY}
-       - besu.ws.url=ws://${VN_GATEWAY_CONTAINER_NAME}:8081/besuws
-       - besu.node.url=http://${VN_GATEWAY_CONTAINER_NAME}:8081/besu
-       - besu.contract.attempts=${BESU_CONTRACT_ATTEMPS} 
-       - besu.contract.sleepDuration=${BESU_CONTRACT_SLEEP_DURATION} 
-       - besu.UDPN_BASIC_MEMBER_NODE_LOGIC=${BESU_UDPN_BASIC_MEMBER_NODE_LOGIC} 
-       - besu.UDPN_BIZ_MEMBER_NODE_LOGIC=${BESU_UDPN_BIZ_MEMBER_NODE_LOGIC} 
-       - besu.UDPN_PAYMENT_TRANS_LOGIC=${BESU_UDPN_PAYMENT_TRANS_LOGIC} 
-       - besu.EXCHANGE_RATE_STRATEGY=${BESU_EXCHANGE_RATE_STRATEGY} 
-       - besu.UDPN_SERVICE_FEE_LOGIC=${BESU_UDPN_SERVICE_FEE_LOGIC} 
-       - besu.UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC=${BESU_UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC}
-       - besu.UDPN_VOTING_STRATEGY_LOGIC=${BESU_UDPN_VOTING_STRATEGY_LOGIC} 
-       - besu.UDPN_VOTING_LOGIC=${BESU_UDPN_VOTING_LOGIC} 
-       - besu.address=${BESU_ADDRESS_M}
-       - besu.privatekey=${BESU_PRIVATEKEY_M}
-
-       - did.proxy.mode=${DID_PROXY_MODE}
-       - did.proxy.url=${DID_PROXY_URL}
-       - did.besu.node.url=${DID_BESU_NODE_URL}
-       - did.besu.node.private.key=${DID_BESU_NODE_PRIVATEKEY}
-       - did.besu.did.cont.address=${DID_BESU_DID_CONTADDRESS}
-       - did.besu.cpt.cont.address=${DID_BESU_CPT_CONTADDRESS}
-       - did.besu.auth.issuer.address=${DID_BESU_AUTHISSUERADDRESS}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-event-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_EVENT_PORT}:${VN_EVENT_PORT}
+      - ${VN_EVENT_PORT}:8080
     depends_on:
-      - vnbase
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.109
+      - udpn-vn
 
   vnmember:
-    image: openjdk:8u102-jre
-    container_name: ${VN_MEMEBER_CONTAINER_NAME}
+    image: udpnnetwork/vnmember:v1.7.0
+    container_name: vnmember
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
-        - /etc/timezone:/etc/timezone:ro
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_MEMEBER_PORT}
-        - spring.vn-code=${VN_CODE}
-        - spring.tn-code=${TN_CODE}
-        - spring.ipfs-url=${IPFS_URL}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info   
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka 
-
-        - spring.redis.host=${REDIS_HOST}
-        - spring.redis.port=${REDIS_PORT}
-        - spring.redis.password=${REDIS_PASSWORD}
-        - spring.redis.database=${REDIS_DATABASE}
-
-        - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.master.username=${MYSQL_USER}
-        - mysql.master.password=${MYSQL_PWD}
-        - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.slave.username=${MYSQL_USER}
-        - mysql.slave.password=${MYSQL_PWD}
-
-        - besu.nodePrivateKey=${BESU_NODE_PRIVATEKEY}
-        - besu.ws.url=ws://${VN_GATEWAY_CONTAINER_NAME}:8081/besuws
-        - besu.node.url=http://${VN_GATEWAY_CONTAINER_NAME}:8081/besu
-        - besu.contract.attempts=${BESU_CONTRACT_ATTEMPS} 
-        - besu.contract.sleepDuration=${BESU_CONTRACT_SLEEP_DURATION} 
-        - besu.UDPN_BASIC_MEMBER_NODE_LOGIC=${BESU_UDPN_BASIC_MEMBER_NODE_LOGIC} 
-        - besu.UDPN_BIZ_MEMBER_NODE_LOGIC=${BESU_UDPN_BIZ_MEMBER_NODE_LOGIC} 
-        - besu.UDPN_PAYMENT_TRANS_LOGIC=${BESU_UDPN_PAYMENT_TRANS_LOGIC} 
-        - besu.EXCHANGE_RATE_STRATEGY=${BESU_EXCHANGE_RATE_STRATEGY} 
-        - besu.UDPN_SERVICE_FEE_LOGIC=${BESU_UDPN_SERVICE_FEE_LOGIC} 
-        - besu.UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC=${BESU_UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC} 
-        - besu.UDPN_VOTING_STRATEGY_LOGIC=${BESU_UDPN_VOTING_STRATEGY_LOGIC} 
-        - besu.UDPN_VOTING_LOGIC=${BESU_UDPN_VOTING_LOGIC} 
-        - besu.UDPN_BIZ_ACCOUNT_BINDING_LOGIC=${BESU_UDPN_BIZ_ACCOUNT_BINDING_LOGIC}
-
-        - did.properties.file=${DID_PROPERTIES_FILE}
-
-        - did.proxy.mode=${DID_PROXY_MODE}
-        - did.proxy.url=${DID_PROXY_URL}
-        - did.besu.node.url=${DID_BESU_NODE_URL}
-        - did.besu.node.private.key=${DID_BESU_NODE_PRIVATEKEY}
-        - did.besu.did.cont.address=${DID_BESU_DID_CONTADDRESS}
-        - did.besu.cpt.cont.address=${DID_BESU_CPT_CONTADDRESS}
-        - did.besu.auth.issuer.address=${DID_BESU_AUTHISSUERADDRESS}
-
-        - besu.address=${BESU_ADDRESS_M}
-        - besu.privatekey=${BESU_PRIVATEKEY_M}
-        - oauth.token.url=${OAUTH_TOKEN_URL}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-member-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_MEMEBER_PORT}:${VN_MEMEBER_PORT}
+      - ${VN_MEMBER_PORT}:8080
     depends_on:
-      - vnbase
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.110
+      - udpn-vn
+  
 
   vnpermission:
-    image: openjdk:8u102-jre
-    container_name: ${VN_PERMISSION_CONTAINER_NAME}
+    image: udpnnetwork/vnpermission:v1.7.0
+    container_name: vnpermission
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_PERMISSION_PORT}
-        - spring.vn-code=${VN_CODE}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:${EUREKA_PORT}/eureka
-
-        - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.master.username=${MYSQL_USER}
-        - mysql.master.password=${MYSQL_PWD}
-        - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.slave.username=${MYSQL_USER}
-        - mysql.slave.password=${MYSQL_PWD}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-permission-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_PERMISSION_PORT}:${VN_PERMISSION_PORT}
+      - ${VN_PERMISSION_PORT}:8080
     depends_on:
-      - vnbase
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.111
-
+      - udpn-vn
+  
+  vnlogin:
+    image: udpnnetwork/vnlogin:v1.7.0
+    container_name: vnlogin
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - ${VN_LOGIN_PORT}:8080
+    depends_on:
+      - nacos
+    networks:
+      - udpn-vn
+  
   vntransaction:
-    image: openjdk:8u102-jre
-    container_name: ${VN_TRANSACTION_CONTAINER_NAME}
+    image: udpnnetwork/vntransaction:v1.7.0
+    container_name: vntransaction
     restart: always
-    volumes: 
-        - ${VN_DATA_VOLUMES}:/data
-        - ${VN_DATA_VOLUMES}/init:/data/init
-        - /etc/localtime:/etc/localtime:ro
-        - /etc/timezone:/etc/timezone:ro
     environment:
-        - TZ=Asia/Shanghai
-        - server.port=${VN_TRANSACTION_PORT}
-        - spring.vn-code=${VN_CODE}
-        - spring.tn-code=${TN_CODE}
-        - logging.logpath=${LOG_SAVE_DIR}
-        - logging.level.root=info   
-        - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka
-
-        - spring.redis.host=${REDIS_HOST}
-        - spring.redis.port=${REDIS_PORT}
-        - spring.redis.password=${REDIS_PASSWORD}
-        - spring.redis.database=${REDIS_DATABASE}
-
-        - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.master.username=${MYSQL_USER}
-        - mysql.master.password=${MYSQL_PWD}
-        - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        - mysql.slave.username=${MYSQL_USER}
-        - mysql.slave.password=${MYSQL_PWD}
-
-        - rabbitmq.host=${MQ_HOST}
-        - rabbitmq.port=${MQ_PORT}
-        - rabbitmq.mgrport=${MQ_PORT_MANAGEMENT}
-        - rabbitmq.username=${MQ_USER}
-        - rabbitmq.password=${MQ_PWD}
-        - rabbitmq.vhost=${MQ_VHOST}
-
-        - besu.nodePrivateKey=${BESU_NODE_PRIVATEKEY}
-        - besu.ws.url=ws://${VN_GATEWAY_CONTAINER_NAME}:8081/besuws
-        - besu.node.url=http://${VN_GATEWAY_CONTAINER_NAME}:8081/besu
-        - besu.contract.attempts=${BESU_CONTRACT_ATTEMPS} 
-        - besu.contract.sleepDuration=${BESU_CONTRACT_SLEEP_DURATION} 
-        - besu.UDPN_BASIC_MEMBER_NODE_LOGIC=${BESU_UDPN_BASIC_MEMBER_NODE_LOGIC} 
-        - besu.UDPN_BIZ_MEMBER_NODE_LOGIC=${BESU_UDPN_BIZ_MEMBER_NODE_LOGIC}
-        - besu.UDPN_PAYMENT_TRANS_LOGIC=${BESU_UDPN_PAYMENT_TRANS_LOGIC} 
-        - besu.EXCHANGE_RATE_STRATEGY=${BESU_EXCHANGE_RATE_STRATEGY} 
-        - besu.UDPN_SERVICE_FEE_LOGIC=${BESU_UDPN_SERVICE_FEE_LOGIC}
-        - besu.UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC=${BESU_UDPN_DID_CURRENCY_ACCOUNT_MAPPING_LOGIC}
-        - besu.UDPN_VOTING_STRATEGY_LOGIC=${BESU_UDPN_VOTING_STRATEGY_LOGIC}
-        - besu.UDPN_VOTING_LOGIC=${BESU_UDPN_VOTING_LOGIC}
-        - besu.UDPN_BIZ_ACCOUNT_BINDING_LOGIC=${BESU_UDPN_BIZ_ACCOUNT_BINDING_LOGIC}
-
-        - did.proxy.mode=${DID_PROXY_MODE}
-        - did.proxy.url=${DID_PROXY_URL}
-        - did.besu.node.url=${DID_BESU_NODE_URL}
-        - did.besu.node.private.key=${DID_BESU_NODE_PRIVATEKEY}
-        - did.besu.did.cont.address=${DID_BESU_DID_CONTADDRESS}
-        - did.besu.cpt.cont.address=${DID_BESU_CPT_CONTADDRESS}
-        - did.besu.auth.issuer.address=${DID_BESU_AUTHISSUERADDRESS}
-
-        - besu.address=${BESU_ADDRESS_T}
-        - besu.privatekey=${BESU_PRIVATEKEY_T}
-    command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-transaction-${JAR_VERSION}.jar"
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - ./vnserver/solc:/solc:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
-        - ${VN_TRANSACTION_PORT}:${VN_TRANSACTION_PORT}
+      - ${VN_TRANSACTION_PORT}:8080
     depends_on:
-      - vnbase
+      - nacos
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.112
-
-  # vnlogin:
-  #   image: openjdk:8u102-jre
-  #   container_name: ${VN_LOGIN_CONTAINER_NAME}
-  #   restart: always
-  #   volumes: 
-  #       - ${VN_DATA_VOLUMES}:/data
-  #       - ${VN_DATA_VOLUMES}/init:/data/init
-  #       - /etc/localtime:/etc/localtime:ro
-  #       - /etc/timezone:/etc/timezone:ro
-  #   environment:
-  #       - TZ=Asia/Shanghai
-  #       - server.port=${VN_LOGIN_PORT}
-  #       - spring.vn-code=${VN_CODE}
-  #       - spring.tn-code=${TN_CODE}
-  #       - logging.logpath=${LOG_SAVE_DIR}
-  #       - logging.level.root=info   
-  #       - eureka.client.service-url.defaultZone=http://${EUREKA_USER}:${EUREKA_PWD}@${EUREKA_CONTAINER_NAME}:8761/eureka
-
-  #       - spring.redis.host=${REDIS_HOST}
-  #       - spring.redis.port=${REDIS_PORT}
-  #       - spring.redis.password=${REDIS_PASSWORD}
-  #       - spring.redis.database=${REDIS_DATABASE}
-
-  #       - mysql.master.url=jdbc:mysql://${MYSQL_MASTER_HOST}:${MYSQL_MASTER_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-  #       - mysql.master.username=${MYSQL_USER}
-  #       - mysql.master.password=${MYSQL_PWD}
-  #       - mysql.slave.url=jdbc:mysql://${MYSQL_SLAVE_HOST}:${MYSQL_SLAVE_PORT}/${MYSQL_DATABASE}?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-  #       - mysql.slave.username=${MYSQL_USER}
-  #       - mysql.slave.password=${MYSQL_PWD}
-
-  #       - common.captcha.open=${COMMON_CAPTCHA_OPEN}
-
-  #       - did.proxy.mode=${DID_PROXY_MODE}
-  #       - did.proxy.url=${DID_PROXY_URL}
-  #       - did.besu.node.url=${DID_BESU_NODE_URL}
-  #       - did.besu.node.private.key=${DID_BESU_NODE_PRIVATEKEY}
-  #       - did.besu.did.cont.address=${DID_BESU_DID_CONTADDRESS}
-  #       - did.besu.cpt.cont.address=${DID_BESU_CPT_CONTADDRESS}
-  #       - did.besu.auth.issuer.address=${DID_BESU_AUTHISSUERADDRESS}
-  #   command: /bin/bash -c "java -Djava.security.egd=file:/dev/./urandom -jar /data/vn-login-${JAR_VERSION}.jar"
-  #   ports:
-  #       - ${VN_LOGIN_PORT}:${VN_LOGIN_PORT}
-  #   depends_on:
-  #     - vnbase
-  #   networks:
-  #     udpn-vn:
-  #       ipv4_address: 172.16.138.113
-
-
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
+      - udpn-vn
+  
+  vnsolutioncenter:
+    image: udpnnetwork/vnsolutioncenter:v1.7.0
+    container_name: vnsolutioncenter
     restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - server.port=8080
+      - spring.cloud.nacos.discovery.server-addr=nacos:8848
+      - spring.cloud.nacos.discovery.username=nacos
+      - spring.cloud.nacos.discovery.password=nacos
+      - spring.cloud.nacos.discovery.namespace=vn
+      - NACOS_ADDR=nacos:8848
+      - NACOS_USERNAM=nacos
+      - NACOS_PSW=nacos
+      - NACOS_NAMESPACE=vn
+    command: ["/bin/bash", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+    volumes:
+      - ${VN_DATA_VOLUMES}/log:/data:rw
+      - ./vnserver/solc:/solc:rw
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - ${VN_SOLUTIONCENTER_PORT}:8080
+    depends_on:
+      - nacos
+    networks:
+      - udpn-vn
+  
+  vn-web:
+    image: udpnnetwork/vnweb:v1.7.0
+    container_name: vn-web
+    restart: always
+    volumes:
+      - ${VN_DATA_VOLUMES}/vnweb/logs:/var/log/nginx
+      - ./vnweb:/etc/nginx/conf.d/
+    ports:
+      - 8080:80
+    networks:
+      - udpn-vn
+  
+  vnsolutioncenter-web:
+    image: udpnnetwork/vnsolutioncenterweb:v1.7.0
+    container_name: vnsolutioncenter-web
+    restart: always
+    volumes:
+      - ${VN_DATA_VOLUMES}/vnsolutioncenter-web/logs:/var/log/nginx
+      - ./vnsolutioncenter-web:/etc/nginx/conf.d/
     ports:
       - 80:80
-    volumes:
-      - ./nginx/logs:/var/log/nginx
-      - ./nginx/dist/vnweb:/usr/share/nginx/html/vnweb
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - vnbase
     networks:
-      udpn-vn:
-        ipv4_address: 172.16.138.114
+      - udpn-vn
+
 
 networks:
   udpn-vn:
     driver: bridge
+    name: udpn-vn
     ipam:
-      config:
-        - subnet: 172.16.138.0/24
+   	  config:
+​       - subnet: 172.16.138.0/24
+
