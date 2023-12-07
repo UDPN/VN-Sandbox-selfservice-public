@@ -2,62 +2,87 @@
 
 ## System prerequisites
 
-### Minimum hardware spec
+###  hardware spec
+```
+Minimum configuration
+cpu : 2 core
+mem : 4 G
+disk: 40 G
 
-cpu : 16core
-mem : 32G
-disk: 40G
-
+Recommended configuration
+cpu : 4 core
+mem : 8 G
+disk: 40 G
+```
 ### OS and tools
 
 | Tools | version number(tested) |
 | ------------------------- | ------------------------------------- |
-| Ubuntu | v20.04.04 |
-| docker | v20.10.18 |
-| docker-compose | v1.27.3 |
+| Ubuntu | v20.04.06 +|
+| docker | v20.10.18 +|
+| docker-compose | v1.27.3 +|
 
-### tips to install docker 
-```
+### Deployment prerequisite
+``````
+1、deployment docker
 sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
-```
-
-### tips to install docker-compose
-```
+2、deployment docker-compose
 sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/1.27.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
+3、deployment besu private node (Please contact the affiliate)
+``````
+
+
+### Steps 1: clone
+```
+git clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
+git checkout "NEW-TAG"
 ```
 
-## Steps to install VN instance
+### Steps 2: start service
 
-- repo download and clone
 ```
-sudo apt-get install git-lfs
-git lfs clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
+# You can modify the data storage directory yourself .env BN_DATA_VOLUMES
+cd VN-Sandbox-selfservice-public/docker-compose
+docker-compose up -d
 ```
-- Enter the VN docker-compose directory
-  
-  `cd VN-Sandbox-selfservice-public/docker-compose`
 
-- Setup a Besu node and connect to UDPN permissioned network
+### Steps 3: load nacos config file
+```
+# please check nacos status , you can open IP:8848/nacos default user nacos passwd nacos
 
-  This is a seperation step, and this is the first thing you need to accomplish.
+# get token
 
-- Register a Validator Node and config
+curl -X POST '127.0.0.1:8848/nacos/v1/auth/login' -d 'username=nacos&password=nacos'
 
-  Before start a VN, you need to ask other VN to onboard your VN and give you some info, e.g. vn_code .etc.
+{"accessToken":"eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTY5NzU1MjE2OX0.ODl0HnAuStEdALf1Tu5_kFcQ6S3PhKVb1p8xQMb3qOE8kGh47zY9rk1Yh744H1PZ","tokenTtl":18000,"globalAdmin":true,"username":"nacos"}
+
+# create nacos namespace vn
+
+curl -X POST 'http://127.0.0.1:8848/nacos/v1/console/namespaces?accessToken=eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJuYWNvcyIsImV4cCI6MTY5NzU1MjE2OX0.ODl0HnAuStEdALf1Tu5_kFcQ6S3PhKVb1p8xQMb3qOE8kGh47zY9rk1Yh744H1PZ&' -d "customNamespaceId=vn&namespaceName=vn&'namespaceDesc=vn"
+```
+
+### Step 4: load config for vn namespace
+```
+# Open the nacos administration page(http://127.0.0.1:8848/nacos) and import the files under nacos/config/xx.zip into the vn namespace
+ 
+Configurations-->import-->Same preparation(Overwrite)-->Upload File-->choice x.zip
+
+```
+
+### Step 5: modifying a configuration file
+```
+abc
+```
+
   
-- start VN (you need to config the vn before start VN, e.g. set vn_code .etc)
-  
-  `sudo docker-compose up -d`  
-- stop VN
-  
-  `sudo docker-compose down`  
+
 
 ### Web addresses used in VN service
 
 Note: The system needs to use port 80,8080-8085,8761,3306,6379. If there is any conflict, please modify the .env file.
 
-- EUREKA
-    http://localhost:8761/
+- Nacos
+    http://localhost:8848/nacos
 - VN-web
     http://localhost/
 
