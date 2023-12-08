@@ -30,7 +30,7 @@ services:
     restart: always
     environment:
       - TZ=Asia/Shanghai
-      - server.port=8080
+      - server.port=8081
       - spring.cloud.nacos.discovery.server-addr=nacos:8848
       - spring.cloud.nacos.discovery.username=nacos
       - spring.cloud.nacos.discovery.password=nacos
@@ -44,7 +44,7 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - ${VN_GATEWAY_PORT}:8080
+      - ${VN_GATEWAY_PORT}:8081
     networks:
       - udpn-vn
 

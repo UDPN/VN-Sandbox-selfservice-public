@@ -90,7 +90,7 @@ services:
       - ${RABBITMQ_PORT}:5672
       - ${RABBITMQ_MANAGE_PORT}:15672
     environment:
-      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_DEFAULT_VHOST=/my_vhost
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=123456
       - RABBITMQ_LOGS=/var/lib/rabbitmq/rabbitmq.log

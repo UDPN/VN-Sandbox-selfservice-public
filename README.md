@@ -120,6 +120,11 @@ besu.privatekey=<your wallet5/private_key.txt>
 7、edit vn-baseserver.properties
 change your email message
 ```
+
+```
+8、edit vn-rabbitmq.yaml
+mq-public-host: <your public_ip>
+```
 ### Step 7: modifying a configuration file on local
 ```
 edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
