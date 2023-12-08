@@ -83,9 +83,8 @@ Loop 5 times wallet1-wallet5
 
 ### Step 6: modifying a configuration file on nacos
 ```
-1、edit vn-common.yaml
+1、edit vn-common.yaml (Fill it in after entering the network)
 vn-code: < your vncode >
-ipfs-url: < your ip >
 ```
 ```
 2、edit vn-init.properties
