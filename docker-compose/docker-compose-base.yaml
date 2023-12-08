@@ -38,7 +38,6 @@ services:
       - ${VN_DATA_VOLUMES}/redis/data:/data:rw
       - ./redis/redis.conf:/redis.conf:rw
       - /etc/localtime:/etc/localtime
-    privileged: true
     ports:
       - ${REDIS_PORT}:6379
     networks:
@@ -119,7 +118,7 @@ services:
       - udpn-vn
 
 networks:
-  udpn-bn:
+  udpn-vn:
     driver: bridge
-    name: udpn-bn
+    name: udpn-vn
 
