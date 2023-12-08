@@ -275,6 +275,8 @@ services:
       - ./vnweb:/etc/nginx/conf.d/
     ports:
       - 8080:80
+    depends_on:
+      - vngateway
     networks:
       - udpn-vn
   

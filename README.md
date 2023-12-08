@@ -38,7 +38,7 @@ git clone https://github.com/UDPN/VN-Sandbox-selfservice-public.git
 git checkout "NEW-TAG"
 ```
 
-### Steps 2: start  base service
+### Steps 2: start base service
 
 ```
 # You can modify the data storage directory yourself .env VN_DATA_VOLUMES
@@ -120,8 +120,15 @@ besu.privatekey=<your wallet5/private_key.txt>
 7、edit vn-baseserver.properties
 change your email message
 ```
+### Step 7: modifying a configuration file on local
+```
+edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
+      host: <besu_ip>
+      port: <besu_rpc_port>
+      websocketPort: <besu_websocket_port>
+```
 
-### Step 7: start vn service
+### Step 8: start vn service
  
  ```
 cd VN-Sandbox-selfservice-public/docker-compose
