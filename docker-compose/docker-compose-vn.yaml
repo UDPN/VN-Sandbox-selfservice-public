@@ -68,7 +68,7 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
 
@@ -92,7 +92,7 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
 
@@ -116,7 +116,7 @@ services:
       - ${VN_DATA_VOLUMES}/log:/data:rw
       - /etc/localtime:/etc/localtime:ro
     depends_on:
-      - nacos
+      - vninit
     networks:
       - udpn-vn
   
@@ -293,4 +293,10 @@ services:
       - vngateway
     networks:
       - udpn-vn
+
+networks:
+  udpn-vn:
+    driver: bridge
+    name: udpn-vn
+    external: true
 
