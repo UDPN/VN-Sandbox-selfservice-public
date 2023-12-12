@@ -23,6 +23,13 @@ services:
       - /etc/localtime:/etc/localtime:ro
     networks:
       - udpn-vn
+    deploy:
+      resources:
+         limits:
+            cpus: "0.5"
+            memory: 2G
+         reservations:
+            memory: 500M
 
   vngateway:
     image: udpnnetwork/chaingateway:v1.7.0
@@ -95,6 +102,13 @@ services:
       - vninit
     networks:
       - udpn-vn
+    deploy:
+      resources:
+         limits:
+            cpus: "0.5"
+            memory: 2G
+         reservations:
+            memory: 500M
 
   vndid:
     image: udpnnetwork/vndid:v1.7.0
@@ -143,6 +157,13 @@ services:
       - vninit
     networks:
       - udpn-vn
+    deploy:
+      resources:
+         limits:
+            cpus: "0.5"
+            memory: 2G
+         reservations:
+            memory: 500M
 
   vnmember:
     image: udpnnetwork/vnmember:v1.7.0
@@ -167,6 +188,13 @@ services:
       - vninit
     networks:
       - udpn-vn
+    deploy:
+      resources:
+         limits:
+            cpus: "0.5"
+            memory: 2G
+         reservations:
+            memory: 500M
   
   vnpermission:
     image: udpnnetwork/vnpermission:v1.7.0
@@ -191,6 +219,13 @@ services:
       - vninit
     networks:
       - udpn-vn
+    deploy:
+      resources:
+         limits:
+            cpus: "0.5"
+            memory: 2G
+         reservations:
+            memory: 500M
   
   vnlogin:
     image: udpnnetwork/vnlogin:v1.7.0
@@ -240,7 +275,14 @@ services:
       - vninit
     networks:
       - udpn-vn
-  
+    deploy:
+      resources:
+         limits:
+            cpus: "0.5"
+            memory: 2G
+         reservations:
+            memory: 500M
+
   vnsolutioncenter:
     image: udpnnetwork/vnsolutioncenter:v1.7.0
     container_name: vnsolutioncenter

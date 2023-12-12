@@ -1,0 +1,3 @@
+#! /bin/sh
+
+docker exec  mysql mysql -uroot -p 123456 -e "use network_udpn_vn;INSERT INTO oauth_client_details (client_id, resource_ids, client_secret, scope, authorized_grant_types, web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, additional_information, create_time, archived, trusted, autoapprove) VALUES ('c1', 'res1', 'secret', 'ROLE_ADMIN,ROLE_USER,ROLE_API', 'client_credentials,password,authorization_code,implicit,refresh_token', NULL, NULL, 21600, 28800, NULL, '2023-04-20 11:38:27', 0, 0, 'false');"

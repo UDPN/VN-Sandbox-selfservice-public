@@ -77,7 +77,7 @@ docker pull udpnnetwork/udpn-besu-sdk:1.0.0
 
 docker run --rm -it --workdir /root -v $PWD/wallet1:/root udpnnetwork/udpn-besu-sdk:1.0.0
 
-Loop 5 times wallet1-wallet5
+# Loop 5 times wallet1-wallet5
 
 ```
 
@@ -138,6 +138,11 @@ edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
 cd VN-Sandbox-selfservice-public/docker-compose
 docker-compose -f docker-compose-vn.yaml up -d
  ```
+
+### Step 9：Reset admin Password to 123456
+```
+sh reset-pw.sh
+```
 
 ### Web addresses used in VN service
 ```
