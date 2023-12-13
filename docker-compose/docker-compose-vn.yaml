@@ -308,9 +308,9 @@ services:
     networks:
       - udpn-vn
   
-  vn-web:
+  vnweb:
     image: udpnnetwork/vnweb:v1.7.0
-    container_name: vn-web
+    container_name: vnweb
     restart: always
     volumes:
       - ${VN_DATA_VOLUMES}/vnweb/logs:/var/log/nginx
@@ -322,15 +322,30 @@ services:
     networks:
       - udpn-vn
   
-  vnsolutioncenter-web:
-    image: udpnnetwork/vnsolutioncenterweb:v1.7.0
-    container_name: vnsolutioncenter-web
+  #vnsolutioncenter-web:
+  #  image: udpnnetwork/vnsolutioncenterweb:v1.7.0
+  #  container_name: vnsolutioncenter-web
+  #  restart: always
+  #  volumes:
+  #    - ${VN_DATA_VOLUMES}/vnsolutioncenter-web/logs:/var/log/nginx
+  #    - ./vnsolutioncenter-web:/etc/nginx/conf.d/
+  #  ports:
+  #    - 8080:80
+  #  depends_on:
+  #    - vngateway
+  #  networks:
+  #    - udpn-vn
+
+  proxy:
+    image: nginx
+    container_name: nginx
     restart: always
     volumes:
-      - ${VN_DATA_VOLUMES}/vnsolutioncenter-web/logs:/var/log/nginx
-      - ./vnsolutioncenter-web:/etc/nginx/conf.d/
+      - ${VN_DATA_VOLUMES}/nginx/logs:/var/log/nginx
+      - ./stream:/etc/nginx/conf.d/
+      - ./ssl:/etc/nginx/ssl
     ports:
-      - 80:80
+      - 443:443
     depends_on:
       - vngateway
     networks:
