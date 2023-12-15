@@ -342,8 +342,8 @@ services:
     restart: always
     volumes:
       - ${VN_DATA_VOLUMES}/nginx/logs:/var/log/nginx
-      - ./stream:/etc/nginx/conf.d/
-      - ./ssl:/etc/nginx/ssl
+      - ./nginx/stream:/etc/nginx/conf.d/
+      - ./nginx/ssl:/etc/nginx/ssl
     ports:
       - 443:443
     depends_on:
