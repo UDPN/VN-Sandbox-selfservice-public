@@ -29,7 +29,7 @@ sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 2、deployment docker-compose
 sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/1.27.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
 3、deployment besu private node (Please contact the affiliate)
-4、domain example (vngateway.xxx.com, vnweb.xxx.com, vnsolutioncenter.xxx.com)
+4、domain example (vngateway.xxx.com, vnweb.xxx.com)
 5、https certificate for domain
 ``````
 
@@ -123,7 +123,7 @@ change your email message
 ```
 
 ```
-8、edit vn-rabbitmq.yaml
+8、edit vn-rabbit.yaml
 mq-public-host: <your public_ip>
 ```
 ### Step 7: modifying a configuration file on local
@@ -133,23 +133,29 @@ edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
       port: <besu_rpc_port>
       websocketPort: <besu_websocket_port>
 ```
+### Step 8: attach execute permissions to files
+```
+chmod 777 ./vnserver/solc/solc-static-linux-0.8.19
+```
 
-### Step 8: modifying proxy 
+### Step 9: modifying proxy 
 ```
 1、Place the cert certificate in VN-Sandbox-selfservice-public/docker-compose/nginx/ssl
 2、Change your certificate name server.crt server.key
 3、Change configuration in VN-Sandbox-selfservice-public/docker-compose/nginx/stream server_name
 ```
 
-### Step 9: start vn service
+### Step 10: start vn service
  
  ```
 cd VN-Sandbox-selfservice-public/docker-compose
 docker-compose -f docker-compose-vn.yaml up -d
  ```
 
-### Step 10：Reset admin Password to 123456
+### Step 11：Reset admin Password to 123456
 ```
+# Check that the database already exists 'network_udpn_vn', next do the following.
+cd VN-Sandbox-selfservice-public
 sh reset-pw.sh
 ```
 
