@@ -138,22 +138,23 @@ edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
 chmod 777 ./vnserver/solc/solc-static-linux-0.8.19
 ```
 
-### Step 8: modifying proxy 
+### Step 9: modifying proxy 
 ```
 1、Place the cert certificate in VN-Sandbox-selfservice-public/docker-compose/nginx/ssl
 2、Change your certificate name server.crt server.key
 3、Change configuration in VN-Sandbox-selfservice-public/docker-compose/nginx/stream server_name
 ```
 
-### Step 9: start vn service
+### Step 10: start vn service
  
  ```
 cd VN-Sandbox-selfservice-public/docker-compose
 docker-compose -f docker-compose-vn.yaml up -d
  ```
 
-### Step 10：Reset admin Password to 123456
+### Step 11：Reset admin Password to 123456
 ```
+# Check that the database already exists 'network_udpn_vn', next do the following.
 cd VN-Sandbox-selfservice-public
 sh reset-pw.sh
 ```
