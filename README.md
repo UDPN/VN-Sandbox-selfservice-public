@@ -29,6 +29,8 @@ sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 2、deployment docker-compose
 sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/1.27.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
 3、deployment besu private node (Please contact the affiliate)
+4、domain example (vngateway.xxx.com, vnweb.xxx.com, vnsolutioncenter.xxx.com)
+5、https certificate for domain
 ``````
 
 
@@ -136,6 +138,13 @@ edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
 chmod 777 ./vnserver/solc/solc-static-linux-0.8.19
 ```
 
+### Step 8: modifying proxy 
+```
+1、Place the cert certificate in VN-Sandbox-selfservice-public/docker-compose/nginx/ssl
+2、Change your certificate name server.crt server.key
+3、Change configuration in VN-Sandbox-selfservice-public/docker-compose/nginx/stream server_name
+```
+
 ### Step 9: start vn service
  
  ```
@@ -154,9 +163,7 @@ Rabbitmq http://localhost:15672
 
 Nacos-web http://localhost:8848/nacos
   
-Vn-web  http://localhost:8080/
-
-Vn-solutioncenter-web  http://localhost/
+Vn-web  https://localhost
 ```
 ### upgrade (optional)
 ```

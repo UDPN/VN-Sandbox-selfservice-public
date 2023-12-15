@@ -102,20 +102,20 @@ services:
     networks:
       - udpn-vn
 
-  ipfs:
-    image: ipfs/go-ipfs:latest
-    container_name: ipfs
-    restart: always
-    volumes:
-      - ${VN_DATA_VOLUMES}/ipfs/data/staging:/export
-      - ${VN_DATA_VOLUMES}/ipfs/data:/data/ipfs
-    ports:
-      - 4001:4001
-      - 0.0.0.0:10053:5001
-      - 0.0.0.0:10052:8080
-    entrypoint: /sbin/tini -- /usr/local/bin/start_ipfs daemon --migrate=true --enable-gc
-    networks:
-      - udpn-vn
+  #ipfs:
+  #  image: ipfs/go-ipfs:latest
+  #  container_name: ipfs
+  #  restart: always
+  #  volumes:
+  #    - ${VN_DATA_VOLUMES}/ipfs/data/staging:/export
+  #    - ${VN_DATA_VOLUMES}/ipfs/data:/data/ipfs
+  #  ports:
+  #    - 4001:4001
+  #    - 0.0.0.0:10053:5001
+  #    - 0.0.0.0:10052:8080
+  #  entrypoint: /sbin/tini -- /usr/local/bin/start_ipfs daemon --migrate=true --enable-gc
+  #  networks:
+  #    - udpn-vn
 
 networks:
   udpn-vn:
