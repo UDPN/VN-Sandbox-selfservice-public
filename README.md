@@ -29,7 +29,7 @@ sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 2、deployment docker-compose
 sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/1.27.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
 3、deployment besu private node (Please contact the affiliate)
-4、domain example (vngateway.xxx.com, vnweb.xxx.com, vnsolutioncenter.xxx.com)
+4、domain example (vngateway.xxx.com, vnweb.xxx.com)
 5、https certificate for domain
 ``````
 
@@ -154,6 +154,7 @@ docker-compose -f docker-compose-vn.yaml up -d
 
 ### Step 10：Reset admin Password to 123456
 ```
+cd VN-Sandbox-selfservice-public
 sh reset-pw.sh
 ```
 
