@@ -121,7 +121,7 @@ change your email message
 ```
 
 ```
-8、edit vn-rabbitmq.yaml
+8、edit vn-rabbit.yaml
 mq-public-host: <your public_ip>
 ```
 ### Step 7: modifying a configuration file on local
@@ -131,15 +131,19 @@ edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
       port: <besu_rpc_port>
       websocketPort: <besu_websocket_port>
 ```
+### Step 8: attach execute permissions to files
+```
+chmod 777 ./vnserver/solc/solc-static-linux-0.8.19
+```
 
-### Step 8: start vn service
+### Step 9: start vn service
  
  ```
 cd VN-Sandbox-selfservice-public/docker-compose
 docker-compose -f docker-compose-vn.yaml up -d
  ```
 
-### Step 9：Reset admin Password to 123456
+### Step 10：Reset admin Password to 123456
 ```
 sh reset-pw.sh
 ```
