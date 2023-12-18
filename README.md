@@ -135,7 +135,7 @@ edit VN-Sandbox-selfservice-public/docker-compose/vnsever/init/init_besu.yml
 ```
 ### Step 8: attach execute permissions to files
 ```
-chmod 777 ./vnserver/solc/solc-static-linux-0.8.19
+chmod +x ./vnserver/solc/solc-static-linux-0.8.19
 ```
 
 ### Step 9: modifying proxy 
@@ -159,13 +159,17 @@ cd VN-Sandbox-selfservice-public
 sh reset-pw.sh
 ```
 
-### Web addresses used in VN service
+### addresses used in VN service
 ```
-Rabbitmq http://localhost:15672
+rabbitmq-managerment http://localhost:15672
 
-Nacos-web http://localhost:8848/nacos
+rabbitmq-service http://localhost:5672
+
+nacos-web http://localhost:8848/nacos
   
-Vn-web  https://localhost
+vnweb  https://localhost
+
+vngateway https://localhost
 ```
 ### upgrade (optional)
 ```
