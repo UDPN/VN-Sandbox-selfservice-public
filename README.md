@@ -5,7 +5,7 @@
 ###  hardware spec
 ```
 Minimum configuration
-cpu : 4 core
+cpu : 8 core
 mem : 16 G
 disk: 40 G
 
